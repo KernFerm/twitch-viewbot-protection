@@ -128,7 +128,6 @@ Returns JSON:
 * Rotate tokens and secrets regularly.
 
 ---
-
 ## 📄 License
 
-MIT © Your Name
+MIT © `Bubbles The Dev`
