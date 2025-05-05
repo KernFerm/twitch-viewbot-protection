@@ -6,6 +6,10 @@ Lightweight, open‑source Node.js service that detects and separates **organic*
 
 ## 🚀 Getting Started
 
+## Make sure to have `NODEJS` installed.
+- I recommend `LTS`
+- [https://nodejs.org/en](https://nodejs.org/en)
+
 ### 1. Install dependencies
 
 ```bash
