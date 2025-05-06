@@ -1,6 +1,20 @@
 # Twitch Viewbot Protection
 
-Lightweight, open‑source Node.js service that detects and separates **organic** vs **artificial** viewers on a Twitch stream.
+A **real-time monitoring and analytics** Node.js service that tracks viewer and chat activity, detects bot-like behavior, and separates **organic** vs **artificial** viewers on your Twitch stream.
+
+---
+
+## 📖 What It Does
+
+* **Chat Listener**: Captures unique chatters and message frequency using `tmi.js`.
+* **Viewer Polling**: Queries the Twitch Helix API for live viewer counts at configurable intervals.
+* **Caching**: Reduces API calls with smart TTLs that adjust based on viewer volume.
+* **Spike & Anomaly Detection**: Uses moving averages and raid/host event hooks to identify sudden changes.
+* **Dynamic Thresholds**: Adapts “organic” viewer calculation using historical chat-to-viewer ratios.
+* **Persistent Storage**: Logs stats to SQLite for long-term trend analysis.
+* **Prometheus Metrics**: Exposes gauges and counters for integration with monitoring systems.
+* **Rate Limiting & Security**: Filters known bot accounts, rate‑limits API access per IP, and supports graceful shutdowns.
+* **Alerts & Web UI**: (Optional) Send anomaly alerts via Discord webhooks and serve a live dashboard from `/public`.
 
 ---
 
@@ -8,7 +22,7 @@ Lightweight, open‑source Node.js service that detects and separates **organic*
 
 ### Prerequisites
 
-Make sure you have **Node.js** installed.
+Make sure you have **Node.js** installed:
 
 * I recommend the **LTS** version.
 * Download from [Node.js Official Website](https://nodejs.org/en)
@@ -33,16 +47,20 @@ VIEWERS_THRESHOLD=5000         # Threshold above which TTL is reduced
 TWITCH_CLIENT_ID=YOUR_CLIENT_ID
 TWITCH_CLIENT_SECRET=YOUR_CLIENT_SECRET
 TWITCH_ACCESS_TOKEN=YOUR_OAUTH_TOKEN  # optional; auto-refreshes if blank
+BROADCASTER_ID=YOUR_BROADCASTER_ID    # Numeric channel ID
+DISCORD_WEBHOOK_URL=YOUR_DISCORD_WEBHOOK_URL  # optional; anomaly alerts
 
-# The channel you moderate (no leading #)
+# Bot & rate limiting
+BOT_BLACKLIST=bot1,bot2,bot3        # comma-separated bot usernames to ignore
+IP_RATE_LIMIT=100                   # max requests per interval per IP
+
+# Channel & thresholds
 TWITCH_CHANNEL=your_channel_name
-
-# Chatters-per-organic-view threshold
-THRESHOLD=2
+THRESHOLD=2                         # Chatters-per-organic-view multiplier
 
 # Server & polling settings
 PORT=3000
-POLL_INTERVAL=15000    # in milliseconds (default: 15000 = 15s)
+POLL_INTERVAL=15000                 # Poll interval in ms (default: 15000)
 ```
 
 ---
@@ -54,90 +72,73 @@ npm start
 # (runs `node src/index.js`)
 ```
 
-After starting, you’ll see console logs like:
+Console output:
 
 ```
 ✔️ Connected to #your_channel_name chat
-🚀 Running on http://localhost:3000/stats
-Viewers: 120, Chatters: 30
+🚀 Running on http://localhost:3000
 ```
 
 ---
 
-## 📊 Stats Endpoint
+## 📊 Endpoints
 
-Once running, request:
+* **Stats**: `GET /stats`
+  Returns JSON:
 
-```
-GET http://localhost:3000/stats
-```
+  ```json
+  {
+    "total_viewers":120,
+    "unique_chatters":30,
+    "organic_viewers":60,
+    "artificial_viewers":60,
+    "spike_detected":false,
+    "raid_viewers":0,
+    "host_viewers":0
+  }
+  ```
 
-Returns JSON:
+* **Metrics**: `GET /metrics`
+  Exposes Prometheus-formatted metrics.
 
-```json
-{
-  "total_viewers": 120,
-  "unique_chatters": 30,
-  "organic_viewers": 60,
-  "artificial_viewers": 60
-}
-```
-
-* **organic\_viewers** = `min(total_viewers, unique_chatters × THRESHOLD)`
-* **artificial\_viewers** = `total_viewers − organic_viewers`
+* **Health**: `GET /health`
+  Returns `OK` if the service is running.
 
 ---
 
 ## 🔧 How It Works
 
 1. **Chat Listener**
-   Uses `tmi.js` to collect unique chatter usernames each interval.
-
+   Collects chatters and message counts, filters known bots.
 2. **Helix API Polling**
-   Uses your `CLIENT_ID` & `CLIENT_SECRET` to get an app token, then fetches `viewer_count` for `TWITCH_CHANNEL` every `POLL_INTERVAL`.
+   Uses OAuth tokens to fetch viewer counts periodically.
+3. **Caching & TTL**
+   Configurable cache durations reduce API load, adjusting for spikes.
+4. **Detection**
 
-3. **Calculation**
-
-   ```js
-   organic    = Math.min(viewer_count, unique_chatters * THRESHOLD)
-   artificial = viewer_count - organic
-   ```
-
-4. **JSON API**
-   Exposes `/stats` on the port you choose.
-
----
-
-## ⚙️ Environment Variables
-
-| Name                     | Description                                        |
-| ------------------------ | -------------------------------------------------- |
-| `CACHE_TTL`              | Default cache TTL for viewer count (ms)            |
-| `CACHE_TTL_HIGH_VIEWERS` | Cache TTL when viewers > `VIEWERS_THRESHOLD` (ms)  |
-| `VIEWERS_THRESHOLD`      | Viewer count above which TTL is shortened          |
-| `TWITCH_CLIENT_ID`       | Your Twitch Developer App Client ID                |
-| `TWITCH_CLIENT_SECRET`   | Your Twitch Developer App Client Secret            |
-| `TWITCH_ACCESS_TOKEN`    | (Optional) App access token; auto-refresh if blank |
-| `TWITCH_CHANNEL`         | Channel name you moderate (no leading `#`)         |
-| `THRESHOLD`              | Chatters-per-organic-view multiplier               |
-| `POLL_INTERVAL`          | Poll interval in ms (default: `15000`)             |
-| `PORT`                   | HTTP port for the `/stats` endpoint                |
+   * **Moving Average** for anomaly/spike detection.
+   * **Raid/Host Hooks** for large influx tracking.
+   * **Dynamic Threshold** for organic viewer calculation.
+5. **Storage & Metrics**
+   Logs to SQLite; exposes Prometheus metrics for dashboards and alerts.
 
 ---
 
 ## 🔄 Customization
 
-* Tweak **THRESHOLD** for stricter/looser “organic” detection.
-* Adjust **POLL\_INTERVAL** for more/less frequent updates.
-* Modify **CACHE\_TTL**, **CACHE\_TTL\_HIGH\_VIEWERS**, and **VIEWERS\_THRESHOLD** to control cache behavior.
-* Extend `src/index.js` with follower‑spike detection, geo‑filters, dashboards, or webhook alerts.
+* **Thresholds**: Tweak `THRESHOLD`, `CACHE_TTL`, `VIEWERS_THRESHOLD` to tune detection.
+* **Alerts**: Configure `DISCORD_WEBHOOK_URL` for real-time notifications.
+* **Dashboard**: Place static files in `/public` to serve a live UI.
+* **Storage**: Swap SQLite for another DB or export logs as needed.
 
 ---
 
-## 🛡️ Security
+## 🛡️ Security & Performance
 
-* Keep your `.env` credentials private.
-* Rotate tokens and secrets regularly.
+* Keep `.env` secrets private and rotate regularly.
+* Use `BOT_BLACKLIST` to ignore known bot accounts.
+* Rate-limit API and IP requests to prevent abuse.
+* Gracefully handle shutdowns for zero downtime.
 
 ---
 
