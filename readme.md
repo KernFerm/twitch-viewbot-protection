@@ -6,11 +6,14 @@ Lightweight, open‑source Node.js service that detects and separates **organic*
 
 ## 🚀 Getting Started
 
-## Make sure to have `NODEJS` installed.
-- I recommend `LTS`
-- [https://nodejs.org/en](https://nodejs.org/en)
+### Prerequisites
 
-### 1. Install dependencies
+Make sure you have **Node.js** installed.
+
+* I recommend the **LTS** version.
+* Download from [Node.js Official Website](https://nodejs.org/en)
+
+### 1. Install Dependencies
 
 ```bash
 npm install
@@ -18,9 +21,14 @@ npm install
 
 ### 2. Configure `.env`
 
-Open the included `.env` file and fill in **your** Twitch credentials and settings. It already lives in the repo—no copying needed.
+Open the included `.env` file and fill in **your** Twitch credentials and settings. It already exists in the repo — no need to copy it.
 
 ```ini
+# Cache Settings
+CACHE_TTL=60000                # Default Cache TTL (ms)
+CACHE_TTL_HIGH_VIEWERS=30000   # Cache TTL when viewers are high (ms)
+VIEWERS_THRESHOLD=5000         # Threshold above which TTL is reduced
+
 # Twitch API credentials
 TWITCH_CLIENT_ID=YOUR_CLIENT_ID
 TWITCH_CLIENT_SECRET=YOUR_CLIENT_SECRET
@@ -46,7 +54,7 @@ npm start
 # (runs `node src/index.js`)
 ```
 
-You’ll see console logs like:
+After starting, you’ll see console logs like:
 
 ```
 ✔️ Connected to #your_channel_name chat
@@ -102,15 +110,18 @@ Returns JSON:
 
 ## ⚙️ Environment Variables
 
-| Name                   | Description                                |
-| ---------------------- | ------------------------------------------ |
-| `TWITCH_CLIENT_ID`     | Your Twitch Developer App Client ID        |
-| `TWITCH_CLIENT_SECRET` | Your Twitch Developer App Client Secret    |
-| `TWITCH_ACCESS_TOKEN`  | (Optional) App Access Token; auto-refresh  |
-| `TWITCH_CHANNEL`       | Channel name you moderate (no leading `#`) |
-| `THRESHOLD`            | Chatters-per-organic-view multiplier       |
-| `POLL_INTERVAL`        | Poll interval in ms (default: `15000`)     |
-| `PORT`                 | HTTP port for the `/stats` endpoint        |
+| Name                     | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| `CACHE_TTL`              | Default cache TTL for viewer count (ms)            |
+| `CACHE_TTL_HIGH_VIEWERS` | Cache TTL when viewers > `VIEWERS_THRESHOLD` (ms)  |
+| `VIEWERS_THRESHOLD`      | Viewer count above which TTL is shortened          |
+| `TWITCH_CLIENT_ID`       | Your Twitch Developer App Client ID                |
+| `TWITCH_CLIENT_SECRET`   | Your Twitch Developer App Client Secret            |
+| `TWITCH_ACCESS_TOKEN`    | (Optional) App access token; auto-refresh if blank |
+| `TWITCH_CHANNEL`         | Channel name you moderate (no leading `#`)         |
+| `THRESHOLD`              | Chatters-per-organic-view multiplier               |
+| `POLL_INTERVAL`          | Poll interval in ms (default: `15000`)             |
+| `PORT`                   | HTTP port for the `/stats` endpoint                |
 
 ---
 
@@ -118,6 +129,7 @@ Returns JSON:
 
 * Tweak **THRESHOLD** for stricter/looser “organic” detection.
 * Adjust **POLL\_INTERVAL** for more/less frequent updates.
+* Modify **CACHE\_TTL**, **CACHE\_TTL\_HIGH\_VIEWERS**, and **VIEWERS\_THRESHOLD** to control cache behavior.
 * Extend `src/index.js` with follower‑spike detection, geo‑filters, dashboards, or webhook alerts.
 
 ---
@@ -128,6 +140,7 @@ Returns JSON:
 * Rotate tokens and secrets regularly.
 
 ---
+
 ## 📄 License
 
-MIT © `Bubbles The Dev`
+MIT © BubblesTheDev
