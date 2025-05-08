@@ -1,0 +1,51 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twitch Viewer Monitor Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 { color: #64ffda; }
+    .stat {
+      margin: 1rem 0;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Twitch Stream Viewbot Detection</h1>
+  <div id="stats">Loading stats...</div>
+
+  <script>
+    async function fetchStats() {
+      try {
+        const res = await fetch('/stats');
+        const data = await res.json();
+
+        document.getElementById('stats').innerHTML = `
+          <div class="stat">👀 Total Viewers: <strong>${data.total_viewers}</strong></div>
+          <div class="stat">💬 Unique Chatters: <strong>${data.unique_chatters}</strong></div>
+          <div class="stat">🟢 Organic Viewers: <strong>${data.organic_viewers}</strong></div>
+          <div class="stat">🔴 Artificial Viewers: <strong>${data.artificial_viewers}</strong></div>
+          <div class="stat">⚠️ Spike Detected: <strong>${data.spike_detected ? 'Yes' : 'No'}</strong></div>
+          <div class="stat">🚀 Raid Viewers: <strong>${data.raid_viewers}</strong></div>
+          <div class="stat">🎥 Host Viewers: <strong>${data.host_viewers}</strong></div>
+        `;
+      } catch (err) {
+        document.getElementById('stats').innerText = 'Failed to load stats.';
+      }
+    }
+
+    fetchStats();
+    setInterval(fetchStats, 10000); // refresh every 10s
+  </script>
+</body>
+</html>
