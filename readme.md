@@ -18,6 +18,8 @@ A **real-time monitoring and analytics** Node.js service that tracks viewer and 
 
 ---
 
+# [Important Click To READ!!!](https://github.com/KernFerm/twitch-viewbot-protection/issues/2)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
