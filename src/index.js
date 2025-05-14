@@ -166,6 +166,7 @@ setInterval(async () => {
     : Math.min(viewers, chatterCount * dynamicThresh);
   const artificial = Math.max(0, viewers - organic);
 
+  // ADD YOUR MACHINE LEARNING BELOW !! if you have one for better results
   // ML anomaly placeholder
   // const mlAlert = mlAnomalyDetection(viewerHistory, chatterHistory);
 
