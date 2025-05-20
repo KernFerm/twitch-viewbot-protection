@@ -2,6 +2,7 @@
 
 A **real-time monitoring and analytics** Node.js service that tracks viewer and chat activity, detects bot-like behavior, and separates **organic** vs **artificial** viewers on your Twitch stream.
 
+- [https://discord.gg/FxJd3PxXbc](https://discord.gg/FxJd3PxXbc)
 ---
 
 ## 📖 What It Does
